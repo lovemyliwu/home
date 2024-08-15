@@ -1,22 +1,19 @@
-FROM rust:1.63.0-alpine3.15 as buildsocat
+FROM rust:1.63.0-alpine3.15 as build
 
-WORKDIR /tmp
-
-# websocat build from source:
-# Issue: https://github.com/vi/websocat/issues/240
-# Resolved: https://github.com/vi/websocat/tree/e289e9f039169e2bc9df3c0b1aaf15a59f948aac
+# env prepare
 RUN apk add --no-cache git musl-dev pkgconfig openssl-dev
 
+# code prepare
+WORKDIR /tmp
 RUN git clone https://github.com/vi/websocat.git \
     && cd websocat \
-    && git checkout e289e9f039169e2bc9df3c0b1aaf15a59f948aac
+    && git checkout b93a7f61816fc399fa9fc73e91bcd1e927c1bf00
 
+# build target
 WORKDIR /tmp/websocat
-#ENV RUSTFLAGS='-Ctarget-feature=-crt-static -Clinker=musl-gcc'
-#RUN rustup target add x86_64-unknown-linux-musl
-RUN cargo build --release --target=x86_64-unknown-linux-musl && strip target/x86_64-unknown-linux-musl/release/websocat
+RUN cargo build --release --target=x86_64-unknown-linux-musl --features=workaround1,seqpacket,prometheus_peer,prometheus/process,crypto_peer
 
+# save release file
 FROM scratch
 WORKDIR /
-# Stage 3 or later you can copy executable like below.
-COPY --from=buildsocat /tmp/websocat/target/x86_64-unknown-linux-musl/release/websocat /
+COPY --from=build /tmp/websocat/target/x86_64-unknown-linux-musl/release/websocat /
