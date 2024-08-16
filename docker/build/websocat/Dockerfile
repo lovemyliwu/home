@@ -1,7 +1,11 @@
 FROM rust:1.63.0-alpine3.15 as build
+ENV RUSTFLAGS='-Clink-arg=-s -Ctarget-feature=+crt-static'
 
 # env prepare
-RUN apk add --no-cache git musl-dev pkgconfig openssl-dev
+RUN apk add --no-cache git musl-dev pkgconfig openssl-dev openssl-libs-static
+ENV OPENSSL_STATIC=1
+ENV OPENSSL_LIB_DIR=/usr/lib
+ENV OPENSSL_INCLUDE_DIR=/usr/include/openssl
 
 # code prepare
 WORKDIR /tmp
@@ -11,7 +15,8 @@ RUN git clone https://github.com/vi/websocat.git \
 
 # build target
 WORKDIR /tmp/websocat
-RUN cargo build --release --target=x86_64-unknown-linux-musl --features=workaround1,seqpacket,prometheus_peer,prometheus/process,crypto_peer
+RUN cargo build --release --target=x86_64-unknown-linux-musl \
+    && strip target/x86_64-unknown-linux-musl/release/websocat
 
 # save release file
 FROM scratch
