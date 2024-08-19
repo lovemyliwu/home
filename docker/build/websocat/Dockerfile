@@ -9,9 +9,9 @@ ENV OPENSSL_INCLUDE_DIR=/usr/include/openssl
 
 # code prepare
 WORKDIR /tmp
-RUN git clone https://github.com/vi/websocat.git \
+RUN git clone https://github.com/DistPub/websocat.git \
     && cd websocat \
-    && git checkout b93a7f61816fc399fa9fc73e91bcd1e927c1bf00
+    && git checkout 11959c1cf217d31087eaf5d4a88bc5394158f208
 
 # build target
 WORKDIR /tmp/websocat
